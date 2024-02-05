@@ -35,6 +35,8 @@ To use your own handwritten digit images for prediction, place your images in a 
 the `predict_with_custom_image` function call in the `main` block with the path to your image file. Ensure your images
 are grayscale, and have a resolution close to the 28x28 pixels used by the MNIST dataset for optimal performance.
 
+Click the following to create and test your own images: [Whiteboard App Guide](WHITEBOARD.md)
+
 Example:
 
 ```python

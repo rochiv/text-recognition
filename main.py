@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch import device
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 import torch.nn.functional as F
@@ -23,31 +24,6 @@ class SimpleNet(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
-
-
-class CNN(nn.Module):
-    def __init__(self):
-        super(CNN, self).__init__()
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=16, kernel_size=5, stride=1, padding=2),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2),
-        )
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(16, 32, 5, 1, 2),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-        )
-        # fully connected layer, output 10 classes
-        self.out = nn.Linear(32 * 7 * 7, 10)
-
-    def forward(self, x):
-        x = self.conv1(x)
-        x = self.conv2(x)
-        # flatten the output of conv2 to (batch_size, 32 * 7 * 7)
-        x = x.view(x.size(0), -1)
-        output = self.out(x)
-        return output, x  # return x for visualization
 
 
 # Training the CNN
@@ -113,8 +89,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Model
-    # another_model = SimpleNet().to(device)
-    another_model = CNN().to(device)
+    another_model = SimpleNet().to(device)
 
     # Optimizer
     optimizer = optim.SGD(another_model.parameters(), lr=0.01, momentum=0.5)
@@ -127,9 +102,18 @@ def main():
         train(another_model, device, trainloader, optimizer, epoch)
         test(another_model, device, testloader)
 
+    model_path = "best_model.pth"
+    torch.save(another_model.state_dict(), model_path)
+
     # Predict with custom image (example path)
     predict_with_custom_image(another_model, device, 'file_path.png')
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+
+    # load existing model
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = SimpleNet().to(device)
+
+    predict_with_custom_image(model, device, image_path="test_one.png")

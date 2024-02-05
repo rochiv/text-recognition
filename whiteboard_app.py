@@ -73,7 +73,7 @@ class WhiteboardApp:
 
     def save_screenshot(self):
         filename_ps = "screenshot_temp.ps"
-        filename_png = datetime.datetime.now().strftime("screenshot_%Y-%m-%d_%H-%M-%S.png")
+        filename_png = datetime.datetime.now().strftime("test_one.png")
 
         # Save the current canvas content as a PostScript file
         self.canvas.postscript(file=filename_ps, colormode='gray')
