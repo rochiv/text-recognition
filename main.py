@@ -1,32 +1,44 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch import device
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 import torch.nn.functional as F
 from PIL import Image
 
 
-# Define the CNN
 class SimpleNet(nn.Module):
-    def __init__(self):
+    def __init__(self, num_classes: int = 10, dropout: float = 0.2):
         super(SimpleNet, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=5)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=5)
-        self.fc1 = nn.Linear(1024, 128)
-        self.fc2 = nn.Linear(128, 10)
+
+        self.features = nn.Sequential(
+            nn.Conv2d(1, 32, kernel_size=4, stride=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(32, 64, kernel_size=4, stride=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 128, kernel_size=4, stride=1),
+            nn.ReLU(inplace=True),
+        )
+
+        self.adap_avg_pool = nn.AdaptiveAvgPool2d((4, 4))
+
+        self.classifier = nn.Sequential(
+            nn.Dropout(p=dropout),
+            nn.Linear(128, 1024),
+            nn.ReLU(inplace=True),
+            nn.Linear(1024, 1024),
+            nn.ReLU(inplace=True),
+            nn.Linear(1024, num_classes)
+        )
 
     def forward(self, x):
-        x = F.relu(F.max_pool2d(self.conv1(x), 2))
-        x = F.relu(F.max_pool2d(self.conv2(x), 2))
-        x = x.view(-1, 1024)
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
+        x = self.features(x)
+        x = self.adap_avg_pool(x)
+        x = torch.flatten(x, 1)
+        x = self.classifier(x)
+        return x
 
 
-# Training the CNN
 def train(model, device, train_loader, optimizer, epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -92,10 +104,10 @@ def main():
     another_model = SimpleNet().to(device)
 
     # Optimizer
-    optimizer = optim.SGD(another_model.parameters(), lr=0.01, momentum=0.5)
+    optimizer = optim.SGD(another_model.parameters(), lr=0.1, momentum=0.5)
 
     # Number of epochs
-    epochs = 5
+    epochs = 10
 
     # Training and testing
     for epoch in range(1, epochs + 1):
@@ -106,14 +118,14 @@ def main():
     torch.save(another_model.state_dict(), model_path)
 
     # Predict with custom image (example path)
-    predict_with_custom_image(another_model, device, 'file_path.png')
+    predict_with_custom_image(another_model, device, 'test_image_path.png')
 
 
 if __name__ == '__main__':
-    # main()
+    main()
 
     # load existing model
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = SimpleNet().to(device)
-
-    predict_with_custom_image(model, device, image_path="test_one.png")
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # model = SimpleNet().to(device)
+    #
+    # predict_with_custom_image(model, device, image_path="test_eight.png")
