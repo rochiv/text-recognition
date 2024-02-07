@@ -69,11 +69,11 @@ class WhiteboardApp:
             self.drawing_color = color
 
     def change_line_width(self, value):
-        self.line_width = int(value*2)
+        self.line_width = int(value * 2)
 
     def save_screenshot(self):
         filename_ps = "screenshot_temp.ps"
-        filename_png = datetime.datetime.now().strftime("test_one.png")
+        filename_png = datetime.datetime.now().strftime("test_%m%d%H%M")
 
         # Save the current canvas content as a PostScript file
         self.canvas.postscript(file=filename_ps, colormode='gray')
